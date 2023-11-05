@@ -49,20 +49,42 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
 
-            const options = {
-                // Include only the `title` and `imdb` fields in the returned document
-                projection: { title: 1, marks: 1,  thumbnailURL: 1 },
-            };
+            // const options = {
+            //     // Include only the `title` and `imdb` fields in the returned document
+            //     projection: { title: 1, marks: 1,  thumbnailURL: 1 },
+            // };
 
-            const result = await AssignmentsCollection.findOne(query, options);
+            const result = await AssignmentsCollection.findOne(query);
             res.send(result);
         })
         app.post('/assignment', async (req, res) => {
             const booking = req.body;
-            console.log(booking);
+            // console.log(booking);
             const result = await AssignmentsCollection.insertOne(booking);
             res.send(result);
         });
+
+        // update 
+        app.patch('/assignment/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateAssignment = req.body;
+            console.log(updateAssignment);
+            const updateDoc = {
+                $set: {
+                    status: updateAssignment.status
+                },
+            };
+            const result = await AssignmentsCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+        // delete 
+        app.delete('/assignment/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await AssignmentsCollection.deleteOne(query);
+            res.send(result);
+        })
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
