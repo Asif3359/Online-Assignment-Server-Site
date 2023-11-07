@@ -135,7 +135,7 @@ async function run() {
         // get spacific submit assignment 
         app.get('/submitAssignment/:id',verify, async (req, res) => {
 
-            console.log(req.decode);
+            // console.log(req.decode);
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
 
@@ -163,6 +163,7 @@ async function run() {
                     submitEmail: updateSubmitAssignment.submitEmail,
                     userSubmit: updateSubmitAssignment.userSubmit,
                     pending: updateSubmitAssignment.pending,
+                    feedBack: updateSubmitAssignment.feedBack,
                     // pdfLink,notes,title, marks,examineeMarks, thumbnailURL, difficulty, dueDate, description, email,submitEmail,userSubmit,pending,
 
                 }
