@@ -9,10 +9,8 @@ const port = process.env.PORT || 5000;
 
 //middleware
 app.use(cors({
-    origin: [
-        'http://localhost:5173'
-    ],
-    credentials: true,
+    origin: ['https://assignment-project-647ba.web.app','http://localhost:5175'],
+    credentials: true
 }));
 app.use(express.json());
 app.use(cookieParser());
@@ -27,20 +25,21 @@ const client = new MongoClient(uri, {
     }
 });
 
-const verify = async (req, res, next)=>{
+const verify = async (req, res, next) => {
 
     const token = req.cookies?.token;
-    if(!token){
-        res.status(401).send({Status:"unAuthorized Access", code:"401"});
+    console.log(token)
+    if (!token) {
+        res.status(401).send({ Status: "unAuthorized Access", code: "401" });
         return;
     }
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET,(error, decode)=>{
-        if(error){
-            res.status(401).send({Status:"unAuthorized Access", code:"401"});
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decode) => {
+        if (error) {
+            res.status(401).send({ Status: "unAuthorized Access", code: "401" });
         }
-        else{
+        else {
             // console.log(decode);
-            req.decode=decode;
+            req.decode = decode;
         }
     });
     next();
@@ -55,17 +54,19 @@ async function run() {
         const SubmitAssignmentsCollection = client.db("Assignment").collection("SubmitAssignments");
         // const bookingCollection = client.db("Assignment").collection("bookings");
 
-        app.post('/jwt',async(req,res)=>{
-            const user=req.body;
-
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn:"10h"});
+        app.post('/jwt', async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "10h" });
+            console.log(token);
             const expirationDate = new Date();
-            expirationDate.setDate(expirationDate.getDate()+7);
-            res.cookie("token",token,{
-                httpOnly:true,
-                secure:false,
-                expires:expirationDate,
-            }).send({message:"success"});
+            expirationDate.setDate(expirationDate.getDate() + 7);
+
+            res.cookie("token", token, {
+                httpOnly: true,
+                secure: true,
+                sameSite:"none",
+                maxAge:60 * 60 *1000
+            }).send({ message: "success" });
         });
         // getAssignment 
         app.get('/assignment', async (req, res) => {
@@ -82,14 +83,14 @@ async function run() {
             res.send(result);
         })
         //create assignment
-        app.post('/assignment',verify, async (req, res) => {
+        app.post('/assignment', verify, async (req, res) => {
             const assignment = req.body;
             // console.log(assignment);
             const result = await AssignmentsCollection.insertOne(assignment);
             res.send(result);
         });
         // update 
-        app.put('/assignment/:id',verify, async (req, res) => {
+        app.put('/assignment/:id', verify, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const options = { upsert: true };
@@ -112,7 +113,7 @@ async function run() {
             res.send(result);
         })
         // delete 
-        app.delete('/assignment/:id',verify, async (req, res) => {
+        app.delete('/assignment/:id', verify, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await AssignmentsCollection.deleteOne(query);
@@ -120,7 +121,7 @@ async function run() {
         })
 
         //create Submit Assignment
-        app.post('/submitAssignment',verify, async (req, res) => {
+        app.post('/submitAssignment', verify, async (req, res) => {
             const submitAssignment = req.body;
             // console.log(submitAssignment);
             const result = await SubmitAssignmentsCollection.insertOne(submitAssignment);
@@ -133,7 +134,7 @@ async function run() {
             res.send(result);
         });
         // get spacific submit assignment 
-        app.get('/submitAssignment/:id',verify, async (req, res) => {
+        app.get('/submitAssignment/:id', verify, async (req, res) => {
 
             // console.log(req.decode);
             const id = req.params.id;
@@ -143,7 +144,7 @@ async function run() {
             res.send(result);
         });
         // update 
-        app.put('/submitAssignment/:id',verify, async (req, res) => {
+        app.put('/submitAssignment/:id', verify, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const options = { upsert: true };
